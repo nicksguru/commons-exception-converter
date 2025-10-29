@@ -1,4 +1,4 @@
-package guru.nicks.impl;
+package guru.nicks.exception.impl;
 
 import guru.nicks.exception.service.ErrorDictionaryService;
 import guru.nicks.utils.ChecksumUtils;
@@ -31,17 +31,17 @@ import static guru.nicks.validation.dsl.ValiDsl.checkNotNull;
 public abstract class ErrorDictionaryServiceImpl<T extends Enum<T>> implements ErrorDictionaryService<T> {
 
     // immutable
-    @Getter(onMethod_ = @Override)
+    @Getter // (onMethod_ = @Override) - COMMENTED OUT: JavaDoc plugin fails on this
     private final Map<T, Map<Locale, String>> dictionary;
 
-    @Getter(onMethod_ = @Override)
+    @Getter // (onMethod_ = @Override) - COMMENTED OUT: JavaDoc plugin fails on this
     private final String dictionaryVersion;
 
-    @Getter(onMethod_ = @Override)
+    @Getter // (onMethod_ = @Override) - COMMENTED OUT: JavaDoc plugin fails on this
     private final Locale defaultLocale;
 
     // immutable
-    @Getter(onMethod_ = @Override)
+    @Getter // (onMethod_ = @Override)
     private final List<Locale> supportedLocales;
 
     /**
