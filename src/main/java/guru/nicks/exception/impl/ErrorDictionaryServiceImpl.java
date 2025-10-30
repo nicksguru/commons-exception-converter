@@ -23,6 +23,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 import static guru.nicks.validation.dsl.ValiDsl.checkNotNull;
@@ -57,20 +59,20 @@ public abstract class ErrorDictionaryServiceImpl<T extends Enum<T>> implements E
      * <ul>
      *   <li>filtering out null error codes and empty/null locale mappings</li>
      *   <li>filtering out invalid locales (having a blank {@link Locale#getLanguage()} resulting from passing
-     *       unsupported language tags to {@link Locale#forLanguageTag(String)} - this is a documented behavior)</li>
+     *       ill-formed language tags to {@link Locale#forLanguageTag(String)} - this is a documented behavior)</li>
      *   <li>creating an immutable, sorted dictionary for thread-safe access</li>
      *   <li>extracting and sorting all supported locales from the dictionary (as {@link #getSupportedLocales()})</li>
-     *   <li>calculating a checksum version of the dictionary (as {@link #getDictionaryVersion()})</li>
+     *   <li>calculating a checksum-based version of the dictionary (as {@link #getDictionaryVersion()})</li>
      *   <li>reporting any missing error code translations (as compared to all {@link T} values)</li>
      * </ul>
      *
      * @param dictionary         A map of business error codes to their locale-specific translations. Must not be
-     *                           {@code null}. Null keys and empty/null values are filtered out during processing.
+     *                           {@code null}. Null keys and empty/null values are filtered out.
      * @param defaultLocale      The default locale to use when no matching translation is found for requested locales.
      *                           Must not be {@code null}.
-     * @param httpRequestFactory an optional factory for obtaining the current HTTP request, used to extract locale
-     *                           preferences from request headers. May be null if HTTP request context is not available.
-     *                           When provided, must be properly scoped (e.g., request-scoped proxy).
+     * @param httpRequestFactory An optional factory for obtaining the current HTTP request. Used to extract locale
+     *                           preferences from request headers. May be {@code null} if HTTP request context is not
+     *                           available. When provided, must be a request-scoped proxy.
      */
     public ErrorDictionaryServiceImpl(Map<T, Map<Locale, String>> dictionary, Locale defaultLocale,
             @Nullable ObjectFactory<HttpServletRequest> httpRequestFactory) {
@@ -79,6 +81,18 @@ public abstract class ErrorDictionaryServiceImpl<T extends Enum<T>> implements E
 
         checkNotNull(dictionary, "dictionary");
         this.dictionary = sanitizeDictionary(dictionary);
+        int originalSize = dictionary.size();
+
+        // Warn if significant data loss occurred during sanitization
+        if (originalSize > 0) {
+            if (this.dictionary.isEmpty()) {
+                log.error("All {} dictionary entries were filtered out during sanitization. "
+                        + "Check for null keys, empty values, or invalid locales.", originalSize);
+            } else if (this.dictionary.size() < originalSize * 0.5) {
+                log.warn("Significant data loss during sanitization: {} of {} entries removed. " +
+                        "Check for data quality issues.", originalSize - this.dictionary.size(), originalSize);
+            }
+        }
 
         // at this point, the dictionary contains no null keys or values
         supportedLocales = this.dictionary.values()
@@ -139,32 +153,57 @@ public abstract class ErrorDictionaryServiceImpl<T extends Enum<T>> implements E
                 httpRequest, supportedLocales);
     }
 
+    @Override
+    public EnumSet<T> getMissingErrorCodes() {
+        // EnumSet.copyOf fails on empty collections, hence this workaround
+        EnumSet<T> source = dictionary.isEmpty()
+                ? EnumSet.noneOf(getErrorCodeClass())
+                : EnumSet.copyOf(dictionary.keySet());
+
+        // discrepancy is not crucial but not nice either
+        return EnumSet.complementOf(source);
+    }
+
     /**
-     * @see #stringifyLocales(Map)
+     * Computes a {@link ChecksumUtils#computeJsonChecksumBase64(Object) checksum} ensuring the keys are sorted first
+     * (both {@code T} and {@link Locale} - see {@link #sortLocales(Map)}). The manual sorting is superfluous for the
+     * above algorithm, but it may change some day, and the key order is crucial.
      */
-    private String calculateErrorDictionaryChecksum(Map<T, Map<Locale, String>> errorDictionary) {
-        Map<T, Map<String, String>> mapWithSortableDeepKeys = errorDictionary.entrySet()
+    protected String calculateErrorDictionaryChecksum(Map<T, Map<Locale, String>> errorDictionary) {
+        SortedMap<T, Map<String, String>> mapWithSortedKeys = errorDictionary.entrySet()
                 .stream()
                 .collect(Collectors.toMap(
+                        // T is Enum which is Comparable
                         Map.Entry::getKey,
-                        entry -> stringifyLocales(entry.getValue())));
+                        entry -> sortLocales(entry.getValue()),
+                        (existingValue, newValue) -> existingValue,
+                        TreeMap::new));
 
-        // WARNING: the input map's keys are NOT sorted - the checksum engine sorts them.
-        return ChecksumUtils.computeJsonChecksumBase64(mapWithSortableDeepKeys);
+        // the checksum engine sorts the keys, but it's better to not rely on that and sort them manually
+        return ChecksumUtils.computeJsonChecksumBase64(mapWithSortedKeys);
     }
 
     /**
      * Replaces each {@link Locale} with its {@link Locale#toLanguageTag()} because the former is not {@link Comparable}
      * - such keys can't be sorted, with is important for consistent checksum computation. Null locales are skipped.
+     * <p>
+     * NOTE: if the same key ({@link Locale#toLanguageTag() language tag} - theoretically, different original locales
+     * may have the same tag) maps to multiple messages during the replacement, the method preserves the latest one.
+     * This doesn't affect translation accuracy; the result of this method is only used for checksum computation.
      *
      * @param map source map
      * @return post-processed map
      */
-    private Map<String, String> stringifyLocales(Map<Locale, String> map) {
+    protected SortedMap<String, String> sortLocales(Map<Locale, String> map) {
         return map.entrySet()
                 .stream()
                 .filter(entry -> entry.getKey() != null)
-                .collect(Collectors.toMap(entry -> entry.getKey().toLanguageTag(), Map.Entry::getValue));
+                .collect(Collectors.toMap(
+                        entry -> entry.getKey().toLanguageTag(),
+                        Map.Entry::getValue,
+                        // see method-level comment for the reasoning of such merge
+                        (existingValue, newValue) -> newValue,
+                        TreeMap::new));
     }
 
     /**
@@ -178,7 +217,7 @@ public abstract class ErrorDictionaryServiceImpl<T extends Enum<T>> implements E
      * This method must be called AFTER all the object fields have been initialized to ensure the dictionary is properly
      * configured and to alert developers of any missing translations that should be added.
      */
-    private void reportIncompleteDictionary() {
+    protected void reportIncompleteDictionary() {
         int totalErrorCodeCount = getErrorCodeClass().getEnumConstants().length;
         int errorDictionaryCount = dictionary.size();
 
@@ -195,52 +234,78 @@ public abstract class ErrorDictionaryServiceImpl<T extends Enum<T>> implements E
             return;
         }
 
-        // EnumSet.copyOf fails on empty collections, hence this workaround
-        EnumSet<T> source = dictionary.isEmpty()
-                ? EnumSet.noneOf(getErrorCodeClass())
-                : EnumSet.copyOf(dictionary.keySet());
-
-        // discrepancy is not crucial but not nice either
-        String errorCodesMissingFromDictionary = EnumSet.complementOf(source)
-                .stream()
+        String commaSeparatedMissingErrorCodes = getMissingErrorCodes().stream()
                 .map(Enum::name)
                 .sorted()
                 .collect(Collectors.joining(", "));
 
-        log.error("Incomplete error dictionary: only {}/{} error codes of class [{}] present, missing translations "
-                        + "for: {}", errorDictionaryCount, totalErrorCodeCount,
-                getErrorCodeClass().getName(), errorCodesMissingFromDictionary);
+        log.error("Incomplete error dictionary: {}/{} error codes of class [{}] present, missing translations for: {}",
+                errorDictionaryCount, totalErrorCodeCount,
+                getErrorCodeClass().getName(), commaSeparatedMissingErrorCodes);
     }
 
-    private Map<T, Map<Locale, String>> sanitizeDictionary(Map<T, Map<Locale, String>> dictionary) {
-        Map<T, Map<Locale, String>> validatedDictionary = dictionary.entrySet()
+    /**
+     * Called from constructor to sanitize the error dictionary:
+     * <ul>
+     *   <li>remove entries with {@code null} error codes (keys)</li>
+     *   <li>remove entries with {@code null} or empty locale mapping (values)</li>
+     *   <li>sanitize each locale map with {@link #sanitizeLocaleMap(Map)}</li>
+     *   <li>sort the resulting dictionary by error code name for consistent logging</li>
+     *   <li>return an immutable sorted map to ensure thread-safety</li>
+     * </ul>
+     *
+     * @param dictionary The raw error dictionary to sanitize. Must not be {@code null}. May contain {@code null} keys,
+     *                   {@code null} values, or empty locale mappings which will be filtered out.
+     * @return An immutable, sorted map containing only valid error code to locale mapping entries. The map is sorted by
+     *         error code name and guaranteed to contain no {@code null} keys or empty/{@code null} values.
+     */
+    protected Map<T, Map<Locale, String>> sanitizeDictionary(Map<T, Map<Locale, String>> dictionary) {
+        // sort map for convenient logging, also make it immutable
+        var builder = new ImmutableSortedMap.Builder<T, Map<Locale, String>>(Comparator.comparing(Enum::name));
+
+        dictionary.entrySet()
                 .stream()
                 // skip null keys (error codes)
                 .filter(entry -> entry.getKey() != null)
                 // skip null null/empty values (locale maps)
                 .filter(entry -> !MapUtils.isEmpty(entry.getValue()))
-                .collect(Collectors.toMap(Map.Entry::getKey,
-                        // Map<Locale, String>: filter out null keys (locales) and locales having an empty language tag
-                        // (resulting from passing an unsupported value to Locale#forLanguageTag - this is a
-                        // documented behavior). Without this, translating to any unsupported language would use such
-                        // empty locales referring to whatever (another) unsupported language.
-                        entry -> entry.getValue()
-                                .entrySet()
-                                .stream()
-                                //
-                                // Entry<Locale, String>: key = locale
-                                .filter(entry1 -> entry1.getKey() != null)
-                                .filter(entry1 -> StringUtils.isNotBlank(entry1.getKey().getLanguage()))
-                                //
-                                // Entry<Locale, String>: value = message
-                                .filter(entry1 -> StringUtils.isNotBlank(entry1.getValue()))
-                                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))));
+                // sanitize each locale map
+                .forEach(entry -> {
+                    Map<Locale, String> sanitizedLocaleMap = sanitizeLocaleMap(entry.getValue());
 
-        // sort map for convenient logging, also make it immutable
-        return new ImmutableSortedMap.Builder<T, Map<Locale, String>>(
-                Comparator.comparing(Enum::name))
-                .putAll(validatedDictionary)
-                .buildOrThrow();
+                    if (!sanitizedLocaleMap.isEmpty()) {
+                        builder.put(entry.getKey(), sanitizedLocaleMap);
+                    }
+                });
+
+        return builder.build();
+    }
+
+    /**
+     * Filters out {@code null} keys (locales) and locales having an empty language tag (resulting from passing an
+     * ill-formed value to {@link Locale#forLanguageTag(String)} - a documented behavior). Without this, translating to
+     * any unsupported language would use such empty locales referring to whatever (another) unsupported language.
+     * <p>
+     * Also, filters out blank translations because they have no business value.
+     *
+     * @param localeMap The locale map to sanitize. May be {@code null}. May contain {@code null} keys/values.
+     * @return a sanitized (possibly empty) map; always empty if the input map was {@code null}
+     */
+    protected Map<Locale, String> sanitizeLocaleMap(@Nullable Map<Locale, String> localeMap) {
+        if (MapUtils.isEmpty(localeMap)) {
+            return Collections.emptyMap();
+        }
+
+        return localeMap.entrySet()
+                .stream()
+                //
+                // key = locale
+                .filter(entry -> entry.getKey() != null)
+                .filter(entry -> StringUtils.isNotBlank(entry.getKey().getLanguage()))
+                //
+                // value = message
+                .filter(entry -> StringUtils.isNotBlank(entry.getValue()))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
 }

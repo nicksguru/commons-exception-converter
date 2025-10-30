@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.security.core.Authentication;
 
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -55,6 +56,11 @@ public interface ErrorDictionaryService<T extends Enum<T>> {
      * @return results
      */
     Map<T, Map<Locale, String>> getDictionary();
+
+    /**
+     * @return error codes that are not present in the dictionary, if any
+     */
+    EnumSet<T> getMissingErrorCodes();
 
     /**
      * @return locales mentioned in {@link #getDictionary()}, sorted by language and then by country
