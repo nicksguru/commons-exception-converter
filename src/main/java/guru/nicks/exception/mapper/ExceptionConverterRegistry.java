@@ -36,7 +36,8 @@ public class ExceptionConverterRegistry {
     }
 
     /**
-     * Finds (and caches if {@code @Cacheable} provider is present in runtime) exception class converter.
+     * Finds (and caches in 'exception-converter-registry' cache if {@code @Cacheable} provider is present in runtime)
+     * exception class converter.
      *
      * @param t exception to find converter for
      * @return optional converter
