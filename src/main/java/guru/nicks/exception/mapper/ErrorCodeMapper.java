@@ -5,8 +5,6 @@ import guru.nicks.exception.RootHttpStatus;
 import guru.nicks.utils.HttpRequestUtils;
 
 import jakarta.annotation.Nullable;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 
 import java.util.Map;
@@ -15,16 +13,14 @@ import java.util.Optional;
 import static guru.nicks.validation.dsl.ValiDsl.checkNotNull;
 
 /**
- * Provides mappings between {@code T}, {@link BusinessException}, and {@link HttpStatus}. Cannot be a Spring bean
- * because called from non-beans too.
- * <p>
- * Spring beans should prefer calling a dedicated service which delegates to this class, for better abstraction.
+ * Provides mappings between {@code T}, {@link BusinessException}, and {@link HttpStatus}.
  */
-@RequiredArgsConstructor
-public abstract class ErrorCodeMapper<T extends Enum<T>> {
+public interface ErrorCodeMapper<T extends Enum<T>> {
 
-    @NonNull // Lombok creates runtime nullness check for this own annotation only
-    private final ErrorCodeRegistry<T> errorCodeRegistry;
+    /**
+     * @return error code registry
+     */
+    ErrorCodeRegistry<T> getErrorCodeRegistry();
 
     /**
      * Finds error code whose exception class is the same as (or the closest parent of) the argument.
@@ -32,11 +28,11 @@ public abstract class ErrorCodeMapper<T extends Enum<T>> {
      * @param e business exception, can be {@code null}
      * @return error code with fallback to {@link #getDefaultErrorCode()}
      */
-    public T toErrorCode(@Nullable BusinessException e) {
+    default T toErrorCode(@Nullable BusinessException e) {
         // WARNING: don't call getOrDefault() - specific Map implementation may throw exceptions on null keys
         T errorCode = Optional.ofNullable(e)
                 .map(BusinessException::getClass)
-                .flatMap(errorCodeRegistry.getExceptionClassToErrorCode()::findEntryForClosestSuperclass)
+                .flatMap(getErrorCodeRegistry().getExceptionClassToErrorCode()::findEntryForClosestSuperclass)
                 .map(Map.Entry::getValue)
                 .orElseGet(this::getDefaultErrorCode);
 
@@ -52,10 +48,10 @@ public abstract class ErrorCodeMapper<T extends Enum<T>> {
      * @param httpStatus HTTP status, can be {@code null}
      * @return error code with fallback to {@link #getDefaultErrorCode()}
      */
-    public T toErrorCode(@Nullable HttpStatus httpStatus) {
+    default T toErrorCode(@Nullable HttpStatus httpStatus) {
         // WARNING: don't call getOrDefault() - specific Map implementation may throw exceptions on null keys
         T errorCode = Optional.ofNullable(httpStatus)
-                .map(errorCodeRegistry.getHttpStatusToErrorCode()::get)
+                .map(getErrorCodeRegistry().getHttpStatusToErrorCode()::get)
                 .orElseGet(this::getDefaultErrorCode);
 
         return checkNotNull(errorCode, "missing default error code");
@@ -68,7 +64,7 @@ public abstract class ErrorCodeMapper<T extends Enum<T>> {
      * @param httpStatusCode HTTP status code
      * @return error code with fallback to {@link #getDefaultErrorCode()}
      */
-    public T toErrorCode(int httpStatusCode) {
+    default T toErrorCode(int httpStatusCode) {
         HttpStatus httpStatus = HttpRequestUtils.resolveHttpStatus(httpStatusCode).orElse(null);
         return toErrorCode(httpStatus);
     }
@@ -80,11 +76,11 @@ public abstract class ErrorCodeMapper<T extends Enum<T>> {
      * @param e business exception, can be {@code null}
      * @return HTTP status code with fallback to {@link #getDefaultHttpStatus()}
      */
-    public HttpStatus toHttpStatus(@Nullable BusinessException e) {
+    default HttpStatus toHttpStatus(@Nullable BusinessException e) {
         // WARNING: don't call getOrDefault() - specific Map implementation may throw exceptions on null keys
         HttpStatus httpStatus = Optional.ofNullable(e)
                 .map(BusinessException::getClass)
-                .flatMap(errorCodeRegistry.getExceptionClassToHttpStatus()::findEntryForClosestSuperclass)
+                .flatMap(getErrorCodeRegistry().getExceptionClassToHttpStatus()::findEntryForClosestSuperclass)
                 .map(Map.Entry::getValue)
                 .orElseGet(this::getDefaultHttpStatus);
 
@@ -98,11 +94,11 @@ public abstract class ErrorCodeMapper<T extends Enum<T>> {
      * @param errorCode error code, can be {@code null}
      * @return HTTP status code with fallback to {@link #getDefaultHttpStatus()}
      */
-    public HttpStatus toHttpStatus(@Nullable T errorCode) {
+    default HttpStatus toHttpStatus(@Nullable T errorCode) {
         // WARNING: don't call getOrDefault() - specific Map implementation may throw exceptions on null keys
         HttpStatus httpStatus = Optional.ofNullable(errorCode)
-                .map(errorCodeRegistry.getErrorCodeToExceptionClass())
-                .flatMap(errorCodeRegistry.getExceptionClassToHttpStatus()::findEntryForClosestSuperclass)
+                .map(getErrorCodeRegistry().getErrorCodeToExceptionClass())
+                .flatMap(getErrorCodeRegistry().getExceptionClassToHttpStatus()::findEntryForClosestSuperclass)
                 .map(Map.Entry::getValue)
                 .orElseGet(this::getDefaultHttpStatus);
 
@@ -114,7 +110,7 @@ public abstract class ErrorCodeMapper<T extends Enum<T>> {
      *
      * @see #toHttpStatus(BusinessException)
      */
-    protected abstract HttpStatus getDefaultHttpStatus();
+    HttpStatus getDefaultHttpStatus();
 
     /**
      * Default error code for such cases when it wasn't found during mapping.
@@ -123,6 +119,6 @@ public abstract class ErrorCodeMapper<T extends Enum<T>> {
      * @see #toErrorCode(HttpStatus)
      * @see #toErrorCode(int)
      */
-    protected abstract T getDefaultErrorCode();
+    T getDefaultErrorCode();
 
 }
