@@ -1,6 +1,6 @@
 # [Nicks.Guru](https://nicks.guru) Commons Exception Converter
 
-<img alt="Latest version" src="https://img.shields.io/maven-central/v/guru.nicks.commons/exception-converter?filter=!25*&label=Latest%20version:&cacheSeconds=7200"> <img alt="Release date"  src="https://img.shields.io/maven-central/last-update/guru.nicks.commons/exception-converter?label=&cacheSeconds=7200">
+<img alt="Latest version" src="https://img.shields.io/maven-central/v/guru.nicks.commons/exception-converter?filter=!25.*&label=Latest%20version:&cacheSeconds=7200"/> <img alt="Release date" src="https://img.shields.io/maven-central/last-update/guru.nicks.commons/exception-converter?label=&color=orange&cacheSeconds=7200"/>
 
 Framework for converting exceptions.
 
