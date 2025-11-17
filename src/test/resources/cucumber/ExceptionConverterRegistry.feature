@@ -47,10 +47,10 @@ Feature: ExceptionConverterRegistry
     And the result should be a "<resultType>"
     And the original exception should be the cause
     Examples:
-      | exceptionType                                             | message            | resultType                                         |
-      | java.net.ConnectException                                 | Connection refused | guru.nicks.exception.http.ServiceTimeoutException  |
-      | java.lang.SecurityException                               | Security error     | guru.nicks.exception.http.UnauthorizedException    |
-      | org.apache.commons.lang3.NotImplementedException          | Not implemented    | guru.nicks.exception.http.NotImplementedException  |
-      | org.springframework.web.bind.MissingRequestValueException | Missing header     | guru.nicks.exception.http.BadRequestException      |
-      | org.springframework.web.multipart.MultipartException      | Upload too big     | guru.nicks.exception.http.PayloadTooLargeException |
-      | org.springframework.security.access.AccessDeniedException | Access denied      | guru.nicks.exception.http.UnauthorizedException    |
+      | exceptionType                                             | message            | resultType                                                 |
+      | java.net.ConnectException                                 | Connection refused | guru.nicks.commons.exception.http.ServiceTimeoutException  |
+      | java.lang.SecurityException                               | Security error     | guru.nicks.commons.exception.http.UnauthorizedException    |
+      | org.apache.commons.lang3.NotImplementedException          | Not implemented    | guru.nicks.commons.exception.http.NotImplementedException  |
+      | org.springframework.web.bind.MissingRequestValueException | Missing header     | guru.nicks.commons.exception.http.BadRequestException      |
+      | org.springframework.web.multipart.MultipartException      | Upload too big     | guru.nicks.commons.exception.http.PayloadTooLargeException |
+      | org.springframework.security.access.AccessDeniedException | Access denied      | guru.nicks.commons.exception.http.UnauthorizedException    |
