@@ -89,8 +89,8 @@ public abstract class ErrorDictionaryServiceImpl<T extends Enum<T>> implements E
                 log.error("All {} dictionary entries were filtered out during sanitization. "
                         + "Check for null keys, empty values, or invalid locales.", originalSize);
             } else if (this.dictionary.size() < originalSize * 0.5) {
-                log.warn("Significant data loss during sanitization: {} of {} entries removed. " +
-                        "Check for data quality issues.", originalSize - this.dictionary.size(), originalSize);
+                log.warn("Significant data loss during sanitization: {} of {} entries removed. "
+                        + "Check for data quality issues.", originalSize - this.dictionary.size(), originalSize);
             }
         }
 
