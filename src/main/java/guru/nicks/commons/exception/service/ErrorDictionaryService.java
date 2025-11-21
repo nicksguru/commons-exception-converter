@@ -1,7 +1,7 @@
 package guru.nicks.commons.exception.service;
 
 import guru.nicks.commons.auth.domain.OpenIdConnectData;
-import guru.nicks.commons.utils.LocaleUtils;
+import guru.nicks.commons.utils.text.LocaleUtils;
 
 import jakarta.annotation.Nullable;
 import jakarta.servlet.http.HttpServletRequest;

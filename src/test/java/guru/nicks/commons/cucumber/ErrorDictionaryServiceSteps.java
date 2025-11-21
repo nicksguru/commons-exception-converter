@@ -3,7 +3,7 @@ package guru.nicks.commons.cucumber;
 import guru.nicks.commons.cucumber.world.TextWorld;
 import guru.nicks.commons.exception.impl.ErrorDictionaryServiceImpl;
 import guru.nicks.commons.exception.service.ErrorDictionaryService;
-import guru.nicks.commons.utils.TextUtils;
+import guru.nicks.commons.utils.text.TextUtils;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;

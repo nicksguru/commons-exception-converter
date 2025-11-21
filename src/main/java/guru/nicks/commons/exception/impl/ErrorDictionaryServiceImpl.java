@@ -1,8 +1,8 @@
 package guru.nicks.commons.exception.impl;
 
 import guru.nicks.commons.exception.service.ErrorDictionaryService;
-import guru.nicks.commons.utils.ChecksumUtils;
-import guru.nicks.commons.utils.LocaleUtils;
+import guru.nicks.commons.utils.crypto.ChecksumUtils;
+import guru.nicks.commons.utils.text.LocaleUtils;
 
 import com.google.common.collect.ImmutableSortedMap;
 import jakarta.annotation.Nullable;
