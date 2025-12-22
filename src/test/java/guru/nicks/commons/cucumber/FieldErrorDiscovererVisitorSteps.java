@@ -2,7 +2,7 @@ package guru.nicks.commons.cucumber;
 
 import guru.nicks.commons.cucumber.world.TextWorld;
 import guru.nicks.commons.exception.visitor.FieldErrorDiscovererVisitor;
-import guru.nicks.commons.rest.v1.dto.BusinessExceptionDto;
+import guru.nicks.commons.rest.v1.dto.FieldErrorDto;
 import guru.nicks.commons.rest.v1.mapper.FieldErrorMapper;
 
 import io.cucumber.datatable.DataTable;
@@ -52,7 +52,7 @@ public class FieldErrorDiscovererVisitorSteps {
 
     private AutoCloseable closeableMocks;
     private Exception testException;
-    private Optional<List<BusinessExceptionDto.FieldErrorDto>> result;
+    private Optional<List<FieldErrorDto>> result;
 
     @Before
     public void beforeEachScenario() {
@@ -139,11 +139,11 @@ public class FieldErrorDiscovererVisitorSteps {
             var fieldErrorData = fieldErrors.get(i);
             var springFieldError = springFieldErrors.get(i);
 
-            var dto = BusinessExceptionDto.FieldErrorDto.builder()
-                    .fieldName(fieldErrorData.getFieldName())
-                    .errorCode(fieldErrorData.getErrorCode())
-                    .errorMessage(fieldErrorData.getErrorMessage())
-                    .build();
+            var dto = new FieldErrorDto(
+                    fieldErrorData.getFieldName(),
+                    fieldErrorData.getErrorCode(),
+                    fieldErrorData.getErrorMessage(),
+                    null);
 
             when(fieldErrorMapper.toDto(springFieldError))
                     .thenReturn(dto);
@@ -169,11 +169,11 @@ public class FieldErrorDiscovererVisitorSteps {
             var fieldErrorData = fieldErrors.get(i);
             var springFieldError = springFieldErrors.get(i);
 
-            var dto = BusinessExceptionDto.FieldErrorDto.builder()
-                    .fieldName(fieldErrorData.getFieldName())
-                    .errorCode(fieldErrorData.getErrorCode())
-                    .errorMessage(fieldErrorData.getErrorMessage())
-                    .build();
+            var dto = new FieldErrorDto(
+                    fieldErrorData.getFieldName(),
+                    fieldErrorData.getErrorCode(),
+                    fieldErrorData.getErrorMessage(),
+                    null);
 
             when(fieldErrorMapper.toDto(springFieldError))
                     .thenReturn(dto);
@@ -239,7 +239,7 @@ public class FieldErrorDiscovererVisitorSteps {
                 .isNotEmpty();
 
         var fieldError = result.get().getFirst();
-        assertThat(fieldError.getFieldName())
+        assertThat(fieldError.fieldName())
                 .as("fieldError.getFieldName()")
                 .isEqualTo(expectedFieldName);
     }
@@ -255,7 +255,7 @@ public class FieldErrorDiscovererVisitorSteps {
                 .isNotEmpty();
 
         var fieldError = result.get().getFirst();
-        assertThat(fieldError.getErrorCode())
+        assertThat(fieldError.errorCode())
                 .as("fieldError.getErrorCode()")
                 .isEqualTo(expectedErrorCode);
     }
@@ -271,7 +271,7 @@ public class FieldErrorDiscovererVisitorSteps {
                 .isNotEmpty();
 
         var fieldError = result.get().getFirst();
-        assertThat(fieldError.getErrorMessage())
+        assertThat(fieldError.errorMessage())
                 .as("fieldError.getErrorMessage()")
                 .isEqualTo(expectedErrorMessage);
     }
@@ -381,11 +381,11 @@ public class FieldErrorDiscovererVisitorSteps {
             var fieldErrorData = fieldErrors.get(i);
             var springFieldError = springFieldErrors.get(i);
 
-            var dto = BusinessExceptionDto.FieldErrorDto.builder()
-                    .fieldName(fieldErrorData.getFieldName())
-                    .errorCode(fieldErrorData.getErrorCode())
-                    .errorMessage(fieldErrorData.getErrorMessage())
-                    .build();
+            var dto = new FieldErrorDto(
+                    fieldErrorData.getFieldName(),
+                    fieldErrorData.getErrorCode(),
+                    fieldErrorData.getErrorMessage(),
+                    null);
             when(fieldErrorMapper.toDto(springFieldError))
                     .thenReturn(dto);
         }
@@ -467,7 +467,7 @@ public class FieldErrorDiscovererVisitorSteps {
                 .isPresent();
 
         var fieldNames = result.get().stream()
-                .map(BusinessExceptionDto.FieldErrorDto::getFieldName)
+                .map(FieldErrorDto::fieldName)
                 .toList();
 
         assertThat(fieldNames)

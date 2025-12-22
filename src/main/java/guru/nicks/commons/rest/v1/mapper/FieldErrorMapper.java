@@ -1,7 +1,7 @@
 package guru.nicks.commons.rest.v1.mapper;
 
 import guru.nicks.commons.mapper.DefaultMapStructConfig;
-import guru.nicks.commons.rest.v1.dto.BusinessExceptionDto;
+import guru.nicks.commons.rest.v1.dto.FieldErrorDto;
 import guru.nicks.commons.utils.ReflectionUtils;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -44,25 +44,26 @@ public class FieldErrorMapper {
         return fieldName.substring(lastDotIndex + 1);
     }
 
-    public BusinessExceptionDto.FieldErrorDto toDto(FieldError fieldError) {
-        var dtoBuilder = BusinessExceptionDto.FieldErrorDto.builder()
-                .fieldName(maskFieldName(fieldError.getField()))
-                .errorCode(fieldError.getCode());
+    public FieldErrorDto toDto(FieldError fieldError) {
+        List<Object> arguments = null;
 
         // add error arguments
         if (RETRIEVE_ERROR_ARGUMENTS) {
-            Optional.of(fieldError)
+            arguments = Optional.of(fieldError)
                     .map(this::collectErrorArguments)
                     .filter(CollectionUtils::isNotEmpty)
-                    .ifPresent(dtoBuilder::arguments);
+                    .orElse(null);
         }
 
-        // Capitalize (make 1st letter in capital) because raw messages are e.g. 'must not be blank'.
+        String message = null;
+        // Capitalize because raw messages are e.g. 'must not be blank'.
+        //
         // COMMENTED OUT to avoid revealing such messages as "Failed to convert property value of type
         // 'java.lang.String' to required type 'java.lang.Boolean'"
-        //dtoBuilder.message(StringUtils.capitalize(fieldError.getDefaultMessage())
+        //message = StringUtils.capitalize(fieldError.getDefaultMessage())
 
-        return dtoBuilder.build();
+        return new FieldErrorDto(maskFieldName(fieldError.getField()), fieldError.getCode(),
+                message, arguments);
     }
 
     /**

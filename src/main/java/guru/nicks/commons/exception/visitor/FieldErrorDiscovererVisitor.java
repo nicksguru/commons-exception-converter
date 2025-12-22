@@ -2,7 +2,7 @@ package guru.nicks.commons.exception.visitor;
 
 import guru.nicks.commons.designpattern.visitor.ReflectionVisitor;
 import guru.nicks.commons.designpattern.visitor.ReflectionVisitorMethod;
-import guru.nicks.commons.rest.v1.dto.BusinessExceptionDto;
+import guru.nicks.commons.rest.v1.dto.FieldErrorDto;
 import guru.nicks.commons.rest.v1.mapper.FieldErrorMapper;
 import guru.nicks.commons.utils.TransformUtils;
 
@@ -33,7 +33,7 @@ import java.util.Optional;
  */
 @Component
 @RequiredArgsConstructor
-public class FieldErrorDiscovererVisitor extends ReflectionVisitor<List<BusinessExceptionDto.FieldErrorDto>> {
+public class FieldErrorDiscovererVisitor extends ReflectionVisitor<List<FieldErrorDto>> {
 
     // DI
     private final FieldErrorMapper fieldErrorMapper;
@@ -45,7 +45,7 @@ public class FieldErrorDiscovererVisitor extends ReflectionVisitor<List<Business
      * @return field-level error
      */
     @ReflectionVisitorMethod
-    public Optional<List<BusinessExceptionDto.FieldErrorDto>> visit(ConstraintViolationException e) {
+    public Optional<List<FieldErrorDto>> visit(ConstraintViolationException e) {
         // only field values are known in this case, not field names
         return Optional.of(TransformUtils.toList(e.getConstraintViolations(), violation -> {
             // 'ObjectClassOrMethodName.nested.field' -> 'field' (bean / method argument validation)
@@ -57,12 +57,10 @@ public class FieldErrorDiscovererVisitor extends ReflectionVisitor<List<Business
                     .filter(StringUtils::isNotBlank)
                     .orElse("<unknown>");
 
-            return BusinessExceptionDto.FieldErrorDto.builder()
-                    .fieldName(fieldName)
-                    .errorCode("Constraint")
+            return new FieldErrorDto(fieldName, "Constraint",
                     // raw messages are e.g. 'must be a well-formed email address' (lowercase 1st letter)
-                    .errorMessage(StringUtils.capitalize(violation.getMessage()))
-                    .build();
+                    StringUtils.capitalize(violation.getMessage()), null);
+
         }));
     }
 
@@ -73,14 +71,10 @@ public class FieldErrorDiscovererVisitor extends ReflectionVisitor<List<Business
      * @return field-level error
      */
     @ReflectionVisitorMethod
-    public Optional<List<BusinessExceptionDto.FieldErrorDto>> visit(MissingServletRequestParameterException e) {
+    public Optional<List<FieldErrorDto>> visit(MissingServletRequestParameterException e) {
         return Optional.of(List.of(
-                BusinessExceptionDto.FieldErrorDto
-                        .builder()
-                        .fieldName(FieldErrorMapper.maskFieldName(e.getParameterName()))
-                        .errorCode("NotNull")
-                        .errorMessage("Missing mandatory parameter")
-                        .build()));
+                new FieldErrorDto(FieldErrorMapper.maskFieldName(e.getParameterName()), "NotNull",
+                        "Missing mandatory parameter", null)));
     }
 
     /**
@@ -90,31 +84,30 @@ public class FieldErrorDiscovererVisitor extends ReflectionVisitor<List<Business
      * @return field-level error
      */
     @ReflectionVisitorMethod
-    public Optional<List<BusinessExceptionDto.FieldErrorDto>> visit(MethodArgumentTypeMismatchException e) {
+    public Optional<List<FieldErrorDto>> visit(MethodArgumentTypeMismatchException e) {
         return Optional.of(List.of(
-                BusinessExceptionDto.FieldErrorDto
-                        .builder()
-                        .fieldName(FieldErrorMapper.maskFieldName(e.getName()))
+                new FieldErrorDto(
+                        FieldErrorMapper.maskFieldName(e.getName()),
                         // e.g. for enums: typeMismatch -> TypeMismatch
-                        .errorCode(StringUtils.capitalize(e.getErrorCode()))
-                        .errorMessage(Strings.CI.contains(e.getMessage(), "enum") ? "Enumeration" : "")
-                        .build()));
+                        StringUtils.capitalize(e.getErrorCode()),
+                        Strings.CI.contains(e.getMessage(), "enum") ? "Enumeration" : "",
+                        null)));
     }
 
     @ReflectionVisitorMethod
-    public Optional<List<BusinessExceptionDto.FieldErrorDto>> visit(MethodArgumentNotValidException e) {
+    public Optional<List<FieldErrorDto>> visit(MethodArgumentNotValidException e) {
         return Optional.of(TransformUtils.toList(
                 e.getBindingResult().getFieldErrors(), fieldErrorMapper::toDto));
     }
 
     @ReflectionVisitorMethod
-    public Optional<List<BusinessExceptionDto.FieldErrorDto>> visit(BindException e) {
+    public Optional<List<FieldErrorDto>> visit(BindException e) {
         return Optional.of(TransformUtils.toList(
                 e.getFieldErrors(), fieldErrorMapper::toDto));
     }
 
     @ReflectionVisitorMethod
-    public Optional<List<BusinessExceptionDto.FieldErrorDto>> visit(ValidationException e) {
+    public Optional<List<FieldErrorDto>> visit(ValidationException e) {
         Throwable cause = e.getCause();
 
         if (!(cause instanceof BindException)) {

@@ -1,6 +1,6 @@
 package guru.nicks.commons.cucumber;
 
-import guru.nicks.commons.rest.v1.dto.BusinessExceptionDto;
+import guru.nicks.commons.rest.v1.dto.FieldErrorDto;
 import guru.nicks.commons.rest.v1.mapper.FieldErrorMapper;
 
 import io.cucumber.java.After;
@@ -31,7 +31,7 @@ public class FieldErrorMapperSteps {
 
     private String fieldName;
     private String maskedFieldName;
-    private BusinessExceptionDto.FieldErrorDto fieldErrorDto;
+    private FieldErrorDto fieldErrorDto;
 
     @Before
     public void beforeEachScenario() {
@@ -99,21 +99,21 @@ public class FieldErrorMapperSteps {
 
     @Then("the field error DTO should have field name {string}")
     public void theFieldErrorDtoShouldHaveFieldName(String expected) {
-        assertThat(fieldErrorDto.getFieldName())
+        assertThat(fieldErrorDto.fieldName())
                 .as("fieldErrorDto.fieldName")
                 .isEqualTo(expected);
     }
 
     @Then("the field error DTO should have error code {string}")
     public void theFieldErrorDtoShouldHaveErrorCode(String expected) {
-        assertThat(fieldErrorDto.getErrorCode())
+        assertThat(fieldErrorDto.errorCode())
                 .as("fieldErrorDto.errorCode")
                 .isEqualTo(expected);
     }
 
     @Then("the field error DTO should have null error code")
     public void theFieldErrorDtoShouldHaveNullErrorCode() {
-        assertThat(fieldErrorDto.getErrorCode())
+        assertThat(fieldErrorDto.errorCode())
                 .as("fieldErrorDto.errorCode")
                 .isNull();
     }
