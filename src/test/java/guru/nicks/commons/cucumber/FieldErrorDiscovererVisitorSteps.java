@@ -139,12 +139,11 @@ public class FieldErrorDiscovererVisitorSteps {
             var fieldErrorData = fieldErrors.get(i);
             var springFieldError = springFieldErrors.get(i);
 
-            var dto = new FieldErrorDto(
-                    fieldErrorData.getFieldName(),
-                    fieldErrorData.getErrorCode(),
-                    fieldErrorData.getErrorMessage(),
-                    null);
-
+            var dto = FieldErrorDto.builder()
+                    .fieldName(fieldErrorData.getFieldName())
+                    .errorCode(fieldErrorData.getErrorCode())
+                    .errorMessage(fieldErrorData.getErrorMessage())
+                    .build();
             when(fieldErrorMapper.toDto(springFieldError))
                     .thenReturn(dto);
         }
@@ -169,12 +168,11 @@ public class FieldErrorDiscovererVisitorSteps {
             var fieldErrorData = fieldErrors.get(i);
             var springFieldError = springFieldErrors.get(i);
 
-            var dto = new FieldErrorDto(
-                    fieldErrorData.getFieldName(),
-                    fieldErrorData.getErrorCode(),
-                    fieldErrorData.getErrorMessage(),
-                    null);
-
+            var dto = FieldErrorDto.builder()
+                    .fieldName(fieldErrorData.getFieldName())
+                    .errorCode(fieldErrorData.getErrorCode())
+                    .errorMessage(fieldErrorData.getErrorMessage())
+                    .build();
             when(fieldErrorMapper.toDto(springFieldError))
                     .thenReturn(dto);
         }
@@ -381,11 +379,11 @@ public class FieldErrorDiscovererVisitorSteps {
             var fieldErrorData = fieldErrors.get(i);
             var springFieldError = springFieldErrors.get(i);
 
-            var dto = new FieldErrorDto(
-                    fieldErrorData.getFieldName(),
-                    fieldErrorData.getErrorCode(),
-                    fieldErrorData.getErrorMessage(),
-                    null);
+            var dto = FieldErrorDto.builder()
+                    .fieldName(fieldErrorData.getFieldName())
+                    .errorCode(fieldErrorData.getErrorCode())
+                    .errorMessage(fieldErrorData.getErrorMessage())
+                    .build();
             when(fieldErrorMapper.toDto(springFieldError))
                     .thenReturn(dto);
         }
