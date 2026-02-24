@@ -4,7 +4,6 @@ import guru.nicks.commons.exception.ExceptionConverter;
 import guru.nicks.commons.exception.http.BadRequestException;
 
 import org.springframework.data.mapping.PropertyReferenceException;
-import org.springframework.stereotype.Component;
 import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
@@ -13,7 +12,6 @@ import org.springframework.validation.FieldError;
  * Converts exception denoting a non-existing property name passed (for example to sort by). Adds {@link FieldError}
  * with the missing property name, so it's rendered to caller.
  */
-@Component
 public class PropertyReferenceExceptionConverter
         implements ExceptionConverter<PropertyReferenceException, BadRequestException> {
 

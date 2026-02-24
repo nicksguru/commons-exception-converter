@@ -1,18 +1,15 @@
 package guru.nicks.commons.rest.v1.mapper;
 
-import guru.nicks.commons.mapper.DefaultMapStructConfig;
 import guru.nicks.commons.rest.v1.dto.FieldErrorDto;
 import guru.nicks.commons.utils.ReflectionUtils;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.mapstruct.Mapper;
 import org.springframework.validation.FieldError;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-@Mapper(config = DefaultMapStructConfig.class)
 public class FieldErrorMapper {
 
     /**

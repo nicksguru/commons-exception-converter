@@ -14,7 +14,6 @@ import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
-import org.springframework.stereotype.Component;
 import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -31,7 +30,6 @@ import java.util.Optional;
  * <p>
  * Field names are masked with {@link FieldErrorMapper#maskFieldName(String)}.
  */
-@Component
 @RequiredArgsConstructor
 public class FieldErrorDiscovererVisitor extends ReflectionVisitor<List<FieldErrorDto>> {
 

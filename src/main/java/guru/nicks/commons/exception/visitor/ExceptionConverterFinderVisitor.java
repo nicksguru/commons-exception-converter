@@ -7,7 +7,6 @@ import guru.nicks.commons.exception.ExceptionConverter;
 import guru.nicks.commons.exception.mapper.ExceptionConverterRegistry;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 
@@ -15,7 +14,6 @@ import java.util.Optional;
  * Attempts to find and apply an appropriate {@link ExceptionConverter} to the given exception using
  * {@link ExceptionConverterRegistry} bean.
  */
-@Component
 @RequiredArgsConstructor
 public class ExceptionConverterFinderVisitor extends ReflectionVisitor<BusinessException> {
 
