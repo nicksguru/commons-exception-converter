@@ -27,6 +27,7 @@ import guru.nicks.commons.exception.visitor.ExceptionConverterFinderVisitor;
 import guru.nicks.commons.exception.visitor.FieldErrorDiscovererVisitor;
 import guru.nicks.commons.rest.v1.mapper.FieldErrorMapper;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
@@ -38,6 +39,7 @@ import java.util.List;
  * defined in the Spring context. This allows for overriding of specific converters while providing sensible defaults.
  */
 @AutoConfiguration
+@Slf4j
 public class ExceptionConverterAutoConfiguration {
 
     // Exception converter beans
@@ -50,6 +52,7 @@ public class ExceptionConverterAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public BindExceptionConverter bindExceptionConverter() {
+        log.debug("Building {} bean", BindExceptionConverter.class.getSimpleName());
         return new BindExceptionConverter();
     }
 
@@ -61,6 +64,7 @@ public class ExceptionConverterAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public ConnectExceptionConverter connectExceptionConverter() {
+        log.debug("Building {} bean", ConnectExceptionConverter.class.getSimpleName());
         return new ConnectExceptionConverter();
     }
 
@@ -72,6 +76,7 @@ public class ExceptionConverterAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public BusinessExceptionConverter businessExceptionConverter() {
+        log.debug("Building {} bean", BusinessExceptionConverter.class.getSimpleName());
         return new BusinessExceptionConverter();
     }
 
@@ -83,6 +88,7 @@ public class ExceptionConverterAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public SecurityExceptionConverter securityExceptionConverter() {
+        log.debug("Building {} bean", SecurityExceptionConverter.class.getSimpleName());
         return new SecurityExceptionConverter();
     }
 
@@ -94,6 +100,7 @@ public class ExceptionConverterAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public MultipartExceptionConverter multipartExceptionConverter() {
+        log.debug("Building {} bean", MultipartExceptionConverter.class.getSimpleName());
         return new MultipartExceptionConverter();
     }
 
@@ -105,6 +112,7 @@ public class ExceptionConverterAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public ValidationExceptionConverter validationExceptionConverter() {
+        log.debug("Building {} bean", ValidationExceptionConverter.class.getSimpleName());
         return new ValidationExceptionConverter();
     }
 
@@ -116,6 +124,7 @@ public class ExceptionConverterAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public AccessDeniedExceptionConverter accessDeniedExceptionConverter() {
+        log.debug("Building {} bean", AccessDeniedExceptionConverter.class.getSimpleName());
         return new AccessDeniedExceptionConverter();
     }
 
@@ -127,6 +136,7 @@ public class ExceptionConverterAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public IllegalStateExceptionConverter illegalStateExceptionConverter() {
+        log.debug("Building {} bean", IllegalStateExceptionConverter.class.getSimpleName());
         return new IllegalStateExceptionConverter();
     }
 
@@ -138,6 +148,7 @@ public class ExceptionConverterAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public DateTimeParseExceptionConverter dateTimeParseExceptionConverter() {
+        log.debug("Building {} bean", DateTimeParseExceptionConverter.class.getSimpleName());
         return new DateTimeParseExceptionConverter();
     }
 
@@ -149,6 +160,7 @@ public class ExceptionConverterAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public IllegalArgumentExceptionConverter illegalArgumentExceptionConverter() {
+        log.debug("Building {} bean", IllegalArgumentExceptionConverter.class.getSimpleName());
         return new IllegalArgumentExceptionConverter();
     }
 
@@ -160,6 +172,7 @@ public class ExceptionConverterAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public NoResourceFoundExceptionConverter noResourceFoundExceptionConverter() {
+        log.debug("Building {} bean", NoResourceFoundExceptionConverter.class.getSimpleName());
         return new NoResourceFoundExceptionConverter();
     }
 
@@ -171,6 +184,7 @@ public class ExceptionConverterAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public ConversionFailedExceptionConverter conversionFailedExceptionConverter() {
+        log.debug("Building {} bean", ConversionFailedExceptionConverter.class.getSimpleName());
         return new ConversionFailedExceptionConverter();
     }
 
@@ -182,6 +196,7 @@ public class ExceptionConverterAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public PropertyReferenceExceptionConverter propertyReferenceExceptionConverter() {
+        log.debug("Building {} bean", PropertyReferenceExceptionConverter.class.getSimpleName());
         return new PropertyReferenceExceptionConverter();
     }
 
@@ -193,6 +208,7 @@ public class ExceptionConverterAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public MissingRequestValueExceptionConverter missingRequestValueExceptionConverter() {
+        log.debug("Building {} bean", MissingRequestValueExceptionConverter.class.getSimpleName());
         return new MissingRequestValueExceptionConverter();
     }
 
@@ -204,6 +220,7 @@ public class ExceptionConverterAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public NoFallbackAvailableExceptionConverter noFallbackAvailableExceptionConverter() {
+        log.debug("Building {} bean", NoFallbackAvailableExceptionConverter.class.getSimpleName());
         return new NoFallbackAvailableExceptionConverter();
     }
 
@@ -215,6 +232,7 @@ public class ExceptionConverterAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public MissingRequestHeaderExceptionConverter missingRequestHeaderExceptionConverter() {
+        log.debug("Building {} bean", MissingRequestHeaderExceptionConverter.class.getSimpleName());
         return new MissingRequestHeaderExceptionConverter();
     }
 
@@ -226,6 +244,7 @@ public class ExceptionConverterAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public UnsupportedOperationExceptionConverter unsupportedOperationExceptionConverter() {
+        log.debug("Building {} bean", UnsupportedOperationExceptionConverter.class.getSimpleName());
         return new UnsupportedOperationExceptionConverter();
     }
 
@@ -237,6 +256,7 @@ public class ExceptionConverterAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public HttpMessageNotReadableExceptionConverter httpMessageNotReadableExceptionConverter() {
+        log.debug("Building {} bean", HttpMessageNotReadableExceptionConverter.class.getSimpleName());
         return new HttpMessageNotReadableExceptionConverter();
     }
 
@@ -248,6 +268,7 @@ public class ExceptionConverterAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public MethodArgumentMismatchExceptionConverter methodArgumentMismatchExceptionConverter() {
+        log.debug("Building {} bean", MethodArgumentMismatchExceptionConverter.class.getSimpleName());
         return new MethodArgumentMismatchExceptionConverter();
     }
 
@@ -259,6 +280,7 @@ public class ExceptionConverterAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public HttpMediaTypeNotSupportedExceptionConverter httpMediaTypeNotSupportedExceptionConverter() {
+        log.debug("Building {} bean", HttpMediaTypeNotSupportedExceptionConverter.class.getSimpleName());
         return new HttpMediaTypeNotSupportedExceptionConverter();
     }
 
@@ -270,6 +292,7 @@ public class ExceptionConverterAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public HttpRequestMethodNotSupportedExceptionConverter httpRequestMethodNotSupportedExceptionConverter() {
+        log.debug("Building {} bean", HttpRequestMethodNotSupportedExceptionConverter.class.getSimpleName());
         return new HttpRequestMethodNotSupportedExceptionConverter();
     }
 
@@ -283,8 +306,8 @@ public class ExceptionConverterAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean
-    public ExceptionConverterRegistry exceptionConverterRegistry(
-            List<ExceptionConverter<?, ?>> exceptionConverters) {
+    public ExceptionConverterRegistry exceptionConverterRegistry(List<ExceptionConverter<?, ?>> exceptionConverters) {
+        log.debug("Building {} bean", ExceptionConverterRegistry.class.getSimpleName());
         return new ExceptionConverterRegistry(exceptionConverters);
     }
 
@@ -298,6 +321,7 @@ public class ExceptionConverterAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public FieldErrorMapper fieldErrorMapper() {
+        log.debug("Building {} bean", FieldErrorMapper.class.getSimpleName());
         return new FieldErrorMapper();
     }
 
@@ -312,6 +336,7 @@ public class ExceptionConverterAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public FieldErrorDiscovererVisitor fieldErrorDiscovererVisitor(FieldErrorMapper fieldErrorMapper) {
+        log.debug("Building {} bean", FieldErrorDiscovererVisitor.class.getSimpleName());
         return new FieldErrorDiscovererVisitor(fieldErrorMapper);
     }
 
@@ -325,6 +350,7 @@ public class ExceptionConverterAutoConfiguration {
     @ConditionalOnMissingBean
     public ExceptionConverterFinderVisitor exceptionConverterFinderVisitor(
             ExceptionConverterRegistry exceptionConverterRegistry) {
+        log.debug("Building {} bean", ExceptionConverterFinderVisitor.class.getSimpleName());
         return new ExceptionConverterFinderVisitor(exceptionConverterRegistry);
     }
 
