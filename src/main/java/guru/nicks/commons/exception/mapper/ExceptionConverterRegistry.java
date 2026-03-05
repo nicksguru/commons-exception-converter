@@ -1,16 +1,19 @@
 package guru.nicks.commons.exception.mapper;
 
+import guru.nicks.commons.cache.domain.CacheConstants;
 import guru.nicks.commons.exception.BusinessException;
 import guru.nicks.commons.exception.ExceptionConverter;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.beanutils.ConstructorUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.springframework.cache.annotation.Cacheable;
 
 import java.lang.reflect.InvocationTargetException;
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -19,6 +22,19 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 public class ExceptionConverterRegistry {
+
+    public static final int CACHE_TTL_DAYS = 14;
+
+    /**
+     * Cache storing exception converters by exception class. Needed for performance, as the lookup involves iterating
+     * through converters to find the matching one.
+     */
+    private final Cache<Class<? extends Throwable>,
+            Optional<ExceptionConverter<Throwable, ? extends BusinessException>>> converterCache =
+            Caffeine.newBuilder()
+                    .maximumSize(CacheConstants.DEFAULT_CAFFEINE_CACHE_CAPACITY)
+                    .expireAfterAccess(Duration.ofDays(CACHE_TTL_DAYS))
+                    .build();
 
     // DI
     private final List<ExceptionConverter<?, ?>> exceptionConverters;
@@ -34,29 +50,39 @@ public class ExceptionConverterRegistry {
     }
 
     /**
-     * Finds (and caches in 'exception-converter-registry' cache if {@code @Cacheable} provider is present in runtime)
-     * exception class converter.
+     * Finds (and caches in memory for {@value #CACHE_TTL_DAYS} days) exception class converter.
      *
      * @param t exception to find converter for
      * @return optional converter
      */
-    @Cacheable(cacheNames = "exception-converter-registry", key = "#t.class.name")
     public Optional<ExceptionConverter<Throwable, ? extends BusinessException>> findConverter(Throwable t) {
+        // 'get' method may return null as per Caffeine specs, but never does in this particular case
+        return converterCache.get(t.getClass(), this::findConverterWithoutCache);
+    }
+
+    /**
+     * Called from {@link #findConverter(Throwable)} on cache miss.
+     *
+     * @param exceptionClass exception class to find converter for
+     * @return optional converter
+     */
+    private Optional<ExceptionConverter<Throwable, ? extends BusinessException>> findConverterWithoutCache(
+            Class<? extends Throwable> exceptionClass) {
         // first try direct lookup
-        var converter = exceptionConverterWrappers.get(t.getClass());
+        var converter = exceptionConverterWrappers.get(exceptionClass);
 
         // if not found, find converter (map value) whose target exception class (map key) is a superclass or t
         if (converter == null) {
             converter = exceptionConverterWrappers.entrySet()
                     .stream()
-                    .filter(mapEntry -> mapEntry.getKey().isAssignableFrom(t.getClass()))
+                    .filter(mapEntry -> mapEntry.getKey().isAssignableFrom(exceptionClass))
                     .findFirst()
                     .map(Map.Entry::getValue)
                     .orElse(null);
         }
 
         // can't log the concrete converter class because it's wrapped in a generic catch-all converter
-        log.debug("Looked up (on cache miss) converter for exception [{}]", t.getClass().getName());
+        log.debug("Looked up (on cache miss) converter for exception [{}]", exceptionClass.getName());
         return Optional.ofNullable(converter);
     }
 
