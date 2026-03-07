@@ -165,9 +165,9 @@ public abstract class ErrorDictionaryServiceImpl<T extends Enum<T>> implements E
     }
 
     /**
-     * Computes a {@link ChecksumUtils#computeJsonChecksumSecure(Object) checksum} ensuring the keys are sorted first
-     * (both {@code T} and {@link Locale} - see {@link #sortLocales(Map)}). The manual sorting is superfluous for the
-     * above algorithm, but it may change some day, and the key order is crucial.
+     * Computes a {@link ChecksumUtils#computeJsonChecksum(Object) checksum} ensuring the keys are sorted first (both
+     * {@code T} and {@link Locale} - see {@link #sortLocales(Map)}). The manual sorting is superfluous for the above
+     * algorithm, but it may change some day, and the key order is crucial.
      */
     protected String calculateErrorDictionaryChecksum(Map<T, Map<Locale, String>> errorDictionary) {
         SortedMap<T, Map<String, String>> mapWithSortedKeys = errorDictionary.entrySet()
@@ -180,7 +180,7 @@ public abstract class ErrorDictionaryServiceImpl<T extends Enum<T>> implements E
                         TreeMap::new));
 
         // the checksum engine sorts the keys, but it's better to not rely on that and sort them manually
-        return ChecksumUtils.computeJsonChecksumSecure(mapWithSortedKeys);
+        return ChecksumUtils.computeJsonChecksum(mapWithSortedKeys);
     }
 
     /**
