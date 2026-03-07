@@ -33,13 +33,13 @@ import static guru.nicks.commons.validation.dsl.ValiDsl.checkNotNull;
 public abstract class ErrorDictionaryServiceImpl<T extends Enum<T>> implements ErrorDictionaryService<T> {
 
     // immutable
-    @Getter // (onMethod_ = @Override) - COMMENTED OUT: JavaDoc plugin fails on this
+    @Getter // (onMethod_ = @Override) - COMMENTED OUT: Javadoc plugin fails on this
     private final Map<T, Map<Locale, String>> dictionary;
 
-    @Getter // (onMethod_ = @Override) - COMMENTED OUT: JavaDoc plugin fails on this
+    @Getter // (onMethod_ = @Override) - COMMENTED OUT: Javadoc plugin fails on this
     private final String dictionaryVersion;
 
-    @Getter // (onMethod_ = @Override) - COMMENTED OUT: JavaDoc plugin fails on this
+    @Getter // (onMethod_ = @Override) - COMMENTED OUT: Javadoc plugin fails on this
     private final Locale defaultLocale;
 
     // immutable
@@ -74,7 +74,7 @@ public abstract class ErrorDictionaryServiceImpl<T extends Enum<T>> implements E
      *                           preferences from request headers. May be {@code null} if HTTP request context is not
      *                           available. When provided, must be a request-scoped proxy.
      */
-    public ErrorDictionaryServiceImpl(Map<T, Map<Locale, String>> dictionary, Locale defaultLocale,
+    protected ErrorDictionaryServiceImpl(Map<T, Map<Locale, String>> dictionary, Locale defaultLocale,
             @Nullable ObjectFactory<HttpServletRequest> httpRequestFactory) {
         this.defaultLocale = checkNotNull(defaultLocale, "defaultLocale");
         this.httpRequestFactory = httpRequestFactory;
@@ -165,7 +165,7 @@ public abstract class ErrorDictionaryServiceImpl<T extends Enum<T>> implements E
     }
 
     /**
-     * Computes a {@link ChecksumUtils#computeJsonChecksumBase64(Object) checksum} ensuring the keys are sorted first
+     * Computes a {@link ChecksumUtils#computeJsonChecksumSecure(Object) checksum} ensuring the keys are sorted first
      * (both {@code T} and {@link Locale} - see {@link #sortLocales(Map)}). The manual sorting is superfluous for the
      * above algorithm, but it may change some day, and the key order is crucial.
      */
@@ -180,7 +180,7 @@ public abstract class ErrorDictionaryServiceImpl<T extends Enum<T>> implements E
                         TreeMap::new));
 
         // the checksum engine sorts the keys, but it's better to not rely on that and sort them manually
-        return ChecksumUtils.computeJsonChecksumBase64(mapWithSortedKeys);
+        return ChecksumUtils.computeJsonChecksumSecure(mapWithSortedKeys);
     }
 
     /**
