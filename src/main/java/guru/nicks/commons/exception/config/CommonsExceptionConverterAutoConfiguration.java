@@ -40,7 +40,7 @@ import java.util.List;
  */
 @AutoConfiguration
 @Slf4j
-public class ExceptionConverterAutoConfiguration {
+public class CommonsExceptionConverterAutoConfiguration {
 
     // Exception converter beans
 

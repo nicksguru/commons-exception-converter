@@ -1,7 +1,7 @@
 package guru.nicks.commons.cucumber;
 
 import guru.nicks.commons.cucumber.world.TextWorld;
-import guru.nicks.commons.exception.config.ExceptionConverterAutoConfiguration;
+import guru.nicks.commons.exception.config.CommonsExceptionConverterAutoConfiguration;
 import guru.nicks.commons.rest.v1.mapper.FieldErrorMapper;
 
 import io.cucumber.spring.CucumberContextConfiguration;
@@ -25,6 +25,6 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
         // Spring beans
         FieldErrorMapper.class,
 })
-@Import(ExceptionConverterAutoConfiguration.class)
+@Import(CommonsExceptionConverterAutoConfiguration.class)
 public class CucumberBootstrap {
 }
