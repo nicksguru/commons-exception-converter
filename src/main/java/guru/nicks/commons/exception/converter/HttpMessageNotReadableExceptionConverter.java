@@ -5,7 +5,6 @@ import guru.nicks.commons.exception.http.BadRequestException;
 
 import org.springframework.http.converter.HttpMessageNotReadableException;
 
-
 public class HttpMessageNotReadableExceptionConverter
         implements ExceptionConverter<HttpMessageNotReadableException, BadRequestException> {
 }
