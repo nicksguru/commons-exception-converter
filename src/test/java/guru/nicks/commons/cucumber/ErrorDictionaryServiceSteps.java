@@ -252,14 +252,14 @@ public class ErrorDictionaryServiceSteps {
 
     @And("the supported locales should be {string}")
     public void theSupportedLocalesShouldBe(String commaSeparatedLanguageTags) {
-        List<Locale> expectedLocales = TextUtils.collectUniqueCommaSeparated(commaSeparatedLanguageTags)
+        List<Locale> expectedLocales = TextUtils.splitByComma(commaSeparatedLanguageTags)
                 .stream()
+                .distinct()
                 .map(Locale::forLanguageTag)
                 // sort locales in the same way as the service (Locale itself is not Comparable)
                 .sorted(Comparator
                         .comparing(Locale::getLanguage)
                         .thenComparing(Locale::getCountry))
-                .distinct()
                 .toList();
 
         assertThat(errorDictionaryService.getSupportedLocales())
@@ -276,8 +276,9 @@ public class ErrorDictionaryServiceSteps {
 
     @When("finding translation for error code {string} with locales {string}")
     public void findingTranslationForErrorCodeWithLocales(String errorCode, String commaSeparatedLanguageTags) {
-        List<Locale> locales = TextUtils.collectUniqueCommaSeparated(commaSeparatedLanguageTags)
+        List<Locale> locales = TextUtils.splitByComma(commaSeparatedLanguageTags)
                 .stream()
+                .distinct()
                 .map(Locale::forLanguageTag)
                 .toList();
 
@@ -310,8 +311,9 @@ public class ErrorDictionaryServiceSteps {
     @When("finding translation for error code {string} with locales containing nulls and {string}")
     public void findingTranslationForErrorCodeWithLocalesContainingNullsAnd(String errorCode,
             String commaSeparatedLanguageTags) {
-        List<Locale> locales = TextUtils.collectUniqueCommaSeparated(commaSeparatedLanguageTags)
+        List<Locale> locales = TextUtils.splitByComma(commaSeparatedLanguageTags)
                 .stream()
+                .distinct()
                 .map(Locale::forLanguageTag)
                 .collect(Collectors.toCollection(ArrayList::new));
 
@@ -331,8 +333,9 @@ public class ErrorDictionaryServiceSteps {
 
     @Then("the locale priority should contain {string}")
     public void theLocalePriorityShouldContain(String commasSeparatedLanguageTags) {
-        List<Locale> expectedLocales = TextUtils.collectUniqueCommaSeparated(commasSeparatedLanguageTags)
+        List<Locale> expectedLocales = TextUtils.splitByComma(commasSeparatedLanguageTags)
                 .stream()
+                .distinct()
                 .map(Locale::forLanguageTag)
                 // sort locales for checking priority order (Locale itself is not Comparable)
                 .sorted(Comparator
