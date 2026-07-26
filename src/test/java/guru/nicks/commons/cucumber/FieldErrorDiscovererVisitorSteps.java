@@ -2,7 +2,7 @@ package guru.nicks.commons.cucumber;
 
 import guru.nicks.commons.cucumber.world.TextWorld;
 import guru.nicks.commons.exception.visitor.FieldErrorDiscovererVisitor;
-import guru.nicks.commons.rest.v1.dto.FieldErrorDto;
+import guru.nicks.commons.rest.dto.FieldErrorDto;
 import guru.nicks.commons.rest.v1.mapper.FieldErrorMapper;
 
 import io.cucumber.datatable.DataTable;

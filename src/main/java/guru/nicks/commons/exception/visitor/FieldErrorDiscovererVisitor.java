@@ -2,7 +2,7 @@ package guru.nicks.commons.exception.visitor;
 
 import guru.nicks.commons.designpattern.visitor.ReflectionVisitor;
 import guru.nicks.commons.designpattern.visitor.ReflectionVisitorMethod;
-import guru.nicks.commons.rest.v1.dto.FieldErrorDto;
+import guru.nicks.commons.rest.dto.FieldErrorDto;
 import guru.nicks.commons.rest.v1.mapper.FieldErrorMapper;
 import guru.nicks.commons.utils.TransformUtils;
 

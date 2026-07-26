@@ -1,6 +1,6 @@
 package guru.nicks.commons.rest.v1.mapper;
 
-import guru.nicks.commons.rest.v1.dto.FieldErrorDto;
+import guru.nicks.commons.rest.dto.FieldErrorDto;
 import guru.nicks.commons.utils.ReflectionUtils;
 
 import org.apache.commons.collections4.CollectionUtils;
