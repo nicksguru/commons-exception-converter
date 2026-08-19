@@ -1,13 +1,11 @@
 package guru.nicks.commons.exception;
 
+import guru.nicks.commons.utils.ExceptionUtils;
 import guru.nicks.commons.utils.ReflectionUtils;
 
 import org.springframework.core.convert.converter.Converter;
 
-import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
-import java.lang.invoke.MethodType;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Each implementing class should be a Spring bean. All such beans are picked by the converter registry. The goal is to
@@ -27,37 +25,15 @@ public interface ExceptionConverter<S extends Throwable, T extends BusinessExcep
      */
     Class<?> STATIC_THIS = MethodHandles.lookup().lookupClass();
 
-    /**
-     * Cache for constructor handles to avoid repeated expensive lookups.
-     */
-    ConcurrentHashMap<Class<? extends BusinessException>, MethodHandle> CONSTRUCTOR_CACHE = new ConcurrentHashMap<>();
-
-    /**
-     * Uses {@link MethodHandles} for efficient constructor invocation with caching to avoid repeated expensive
-     * lookups.
-     *
-     * @param cause original exception, becomes {@link Exception#getCause()}
-     * @return converted exception
-     */
     @Override
     default T convert(S cause) {
         var exceptionClass = getTargetClass();
-        var constructorHandle = CONSTRUCTOR_CACHE.computeIfAbsent(exceptionClass, clazz -> {
-            try {
-                var lookup = MethodHandles.publicLookup();
-                var constructorType = MethodType.methodType(void.class, Throwable.class);
-                return lookup.findConstructor(clazz, constructorType);
-            } catch (NoSuchMethodException | IllegalAccessException e) {
-                throw new IllegalStateException("Failed to find constructor for [" + clazz.getName() + "]: "
-                        + e.getMessage(), e);
-            }
-        });
 
         try {
             @SuppressWarnings("unchecked")
-            T result = (T) constructorHandle.invoke(cause);
+            T result = (T) ExceptionUtils.getExceptionFactory(exceptionClass).apply(cause);
             return result;
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw new IllegalStateException("Failed to instantiate " + exceptionClass.getName(), e);
         }
     }
@@ -76,7 +52,6 @@ public interface ExceptionConverter<S extends Throwable, T extends BusinessExcep
     default Class<S> getSourceClass() {
         return (Class<S>) ReflectionUtils
                 .findMaterializedGenericType(getClass(), STATIC_THIS, Throwable.class)
-                .filter(sourceClass -> !sourceClass.isInstance(BusinessException.class))
                 .orElseThrow(() -> new IllegalStateException("Missing generic source class parameter in "
                         + getClass().getName()));
     }
