@@ -2,6 +2,7 @@ package guru.nicks.commons.exception.mapper;
 
 import guru.nicks.commons.designpattern.SubclassBeforeSuperclassMap;
 import guru.nicks.commons.exception.BusinessException;
+import guru.nicks.commons.exception.BusinessExceptionProvider;
 import guru.nicks.commons.exception.RootHttpStatus;
 
 import lombok.Getter;
@@ -13,16 +14,16 @@ import org.springframework.http.HttpStatus;
 import java.util.EnumMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 
 import static guru.nicks.commons.validation.dsl.ValiDsl.checkNotNull;
 
 /**
- * Provides storage for mappings between {@code T}, {@link BusinessException}, and {@link HttpStatus}. Cannot be a
- * Spring bean
+ * Provides storage for mappings between {@code T}, {@link BusinessException}, and {@link HttpStatus}.
  */
 @Slf4j
-public abstract class ErrorCodeRegistry<T extends Enum<T>> {
+public abstract class ErrorCodeRegistry<T extends BusinessExceptionProvider> {
 
     /**
      * Mapping of exception classes to error codes. Needed to map their subclasses to the same error code.
@@ -58,9 +59,12 @@ public abstract class ErrorCodeRegistry<T extends Enum<T>> {
     }
 
     /**
-     * @return error code class
+     * WARNING: this method is called from constructor, therefore it cannot refer to e.g. a final variable, it can only
+     * refer to a static one! Otherwise, it will be null because {@code this} is incomplete at that point.
+     *
+     * @return all possible error codes - typically enum values
      */
-    protected abstract Class<T> getErrorCodeClass();
+    protected abstract Set<T> getAllErrorCodes();
 
     private void registerErrorCode(T errorCode) {
         checkNotNull(errorCode, "errorCode");
@@ -69,12 +73,10 @@ public abstract class ErrorCodeRegistry<T extends Enum<T>> {
     }
 
     private void registerAllErrorCodes() {
-        for (var errorCode : getErrorCodeClass().getEnumConstants()) {
-            registerErrorCode(errorCode);
-        }
+        getAllErrorCodes().forEach(this::registerErrorCode);
 
         if (exceptionClassToErrorCode.isEmpty()) {
-            log.warn("No error codes registered: [{}] enum is empty", getErrorCodeClass().getName());
+            log.warn("No error codes registered: is getAllErrorCodes() correct?");
         }
     }
 

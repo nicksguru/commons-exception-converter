@@ -1,11 +1,15 @@
 package guru.nicks.commons.exception.mapper;
 
 import guru.nicks.commons.exception.BusinessException;
+import guru.nicks.commons.exception.BusinessExceptionProvider;
 import guru.nicks.commons.exception.RootHttpStatus;
 import guru.nicks.commons.utils.HttpRequestUtils;
 
 import jakarta.annotation.Nullable;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.util.Map;
 import java.util.Optional;
@@ -15,12 +19,36 @@ import static guru.nicks.commons.validation.dsl.ValiDsl.checkNotNull;
 /**
  * Provides mappings between {@code T}, {@link BusinessException}, and {@link HttpStatus}.
  */
-public interface ErrorCodeMapper<T extends Enum<T>> {
+public interface ErrorCodeMapper<T extends BusinessExceptionProvider> {
 
     /**
      * @return error code registry
      */
     ErrorCodeRegistry<T> getErrorCodeRegistry();
+
+    /**
+     * Converts HTTP status to business exception.
+     *
+     * @param httpStatus HTTP status
+     * @param cause      cause of error
+     * @return exception
+     */
+    default BusinessException toException(@Nullable HttpStatus httpStatus, Throwable cause) {
+        BusinessExceptionProvider provider = toErrorCode(httpStatus);
+        return provider.toException(cause);
+    }
+
+    /**
+     * Converts HTTP status code to business exception.
+     *
+     * @param httpStatusCode HTTP status code
+     * @param cause          cause of error
+     * @return exception
+     */
+    default BusinessException toException(int httpStatusCode, Throwable cause) {
+        BusinessExceptionProvider provider = toErrorCode(httpStatusCode);
+        return provider.toException(cause);
+    }
 
     /**
      * Finds error code whose exception class is the same as (or the closest parent of) the argument.
@@ -103,6 +131,26 @@ public interface ErrorCodeMapper<T extends Enum<T>> {
                 .orElseGet(this::getDefaultHttpStatus);
 
         return checkNotNull(httpStatus, "missing default HTTP status");
+    }
+
+    /**
+     * Retrieves the current HTTP request URI from {@link RequestContextHolder}. Return an empty {@link Optional} if:
+     * <ul>
+     *     <li>no request attributes are available (e.g., we're not in a web request context)</li>
+     *     <li>the request attributes are not of type {@link ServletRequestAttributes}</li>
+     * </ul>
+     * This is particularly useful for non-web contexts where no HTTP request is available. The method could be
+     * declared as static, but subclasses should be able to override it.
+     *
+     * @return an {@link Optional} containing the request URI if available
+     */
+    default Optional<String> getCurrentHttpRequestUri() {
+        // getRequestAttributes() returns null if we're not in a web request (e.g. in a JMS request)
+        return Optional.ofNullable(RequestContextHolder.getRequestAttributes())
+                .filter(ServletRequestAttributes.class::isInstance)
+                .map(ServletRequestAttributes.class::cast)
+                .map(ServletRequestAttributes::getRequest)
+                .map(HttpServletRequest::getRequestURI);
     }
 
     /**
