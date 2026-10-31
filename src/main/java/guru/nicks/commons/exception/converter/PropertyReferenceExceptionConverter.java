@@ -3,7 +3,7 @@ package guru.nicks.commons.exception.converter;
 import guru.nicks.commons.exception.ExceptionConverter;
 import guru.nicks.commons.exception.http.BadRequestException;
 
-import org.springframework.data.mapping.PropertyReferenceException;
+import org.springframework.data.core.PropertyReferenceException;
 import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
